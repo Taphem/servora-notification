@@ -1,0 +1,12 @@
+Verify your Servora email
+
+Thanks for signing up for Servora. Confirm this is your email address by opening the
+link below:
+
+{{verificationUrl}}
+
+This link is only valid for a limited time and can only be used once.
+
+If you didn't create a Servora account, you can safely ignore this email.
+
+-- Servora

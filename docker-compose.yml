@@ -1,0 +1,15 @@
+services:
+  notification:
+    build: .
+    ports:
+      - "4009:4009"
+    environment:
+      NODE_ENV: development
+      PORT: 4009
+      HOST: 0.0.0.0
+      INTERNAL_SERVICE_KEY: change-me
+      APP_PUBLIC_URL: http://localhost:3000
+      EMAIL_PROVIDER: console
+      RESEND_API_KEY: ""
+      EMAIL_FROM: "Servora <noreply@example.com>"
+      SMS_PROVIDER: console
