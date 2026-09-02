@@ -285,7 +285,7 @@ Expected production environment variables:
 ```text
 NODE_ENV=production
 INTERNAL_SERVICE_KEY=<strong-secret>
-APP_PUBLIC_URL=<real-frontend-url>
+APP_PUBLIC_URL=https://servora.hemandu.com
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=<resend-secret>
 EMAIL_FROM=<verified-resend-sender>
