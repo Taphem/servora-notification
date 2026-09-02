@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 
-export type EmailNotificationType = 'email-verification' | 'password-reset';
+export type EmailNotificationType = 'email-verification' | 'password-reset' | 'account-created' | 'auth-login';
 
 export interface SendEmailInput {
   type: EmailNotificationType;

@@ -18,6 +18,11 @@ checked out — no other Servora service needs to be running, and no paid third-
 - Sends the **email verification** message for a newly registered account.
 - Sends the **password reset** message for a reset request.
 - Sends the **phone OTP** SMS for phone verification.
+- Sends the **account-created** welcome email (`AccountCreated`), with distinct content for
+  password accounts (verification still pending, sent separately) vs. Google accounts
+  (already verified).
+- Sends the **sign-in notification** email (`AuthLogin`) after a successful login, for both
+  password and Google authentication.
 - Owns email/SMS provider integration (Resend for email; a console/dev SMS provider for now),
   templates, delivery logging, and internal-request validation.
 
@@ -71,6 +76,13 @@ exposed through the API Gateway as a public `/api/v1/notifications/*` route.
 calls this service's internal HTTP endpoints, passing the already-generated raw token/OTP once.
 This service never stores, hashes, or re-validates that value — it is used once, to build a
 message, and discarded.
+
+Auth also publishes two account-lifecycle events this service turns into email: `AccountCreated`
+(one welcome email per new account — content varies only by `authenticationMethod`, never by this
+service's own guess about "new vs. existing") and `AuthLogin` (one sign-in notification per
+successful authentication — never sent for a session check/refresh, and never for a failed login,
+since Auth only calls this endpoint on success). This service does not decide what counts as a new
+account or a successful login; it only renders and sends the email Auth tells it to.
 
 **Known contract mismatch, documented rather than silently resolved:** `servora-auth`'s repository
 already contains a *proposed* outbound integration
@@ -199,6 +211,8 @@ the API Gateway. Full request/response schemas: [`docs/api.md`](docs/api.md).
 | `POST /internal/v1/notifications/email-verification` | Send the "verify your email" message |
 | `POST /internal/v1/notifications/password-reset` | Send the "reset your password" message |
 | `POST /internal/v1/notifications/phone-otp` | Send the OTP SMS |
+| `POST /internal/v1/notifications/account-created` | Send the welcome email for a newly-created account (`AccountCreated`) |
+| `POST /internal/v1/notifications/auth-login` | Send the sign-in security notification (`AuthLogin`) |
 | `GET /health` | Liveness |
 | `GET /ready` | Readiness (verifies runtime configuration) |
 
@@ -239,6 +253,29 @@ curl -i -X POST http://localhost:4009/internal/v1/notifications/phone-otp \
 ```
 
 ```bash
+curl -i -X POST http://localhost:4009/internal/v1/notifications/account-created \
+  -H "Content-Type: application/json" \
+  -H "x-servora-internal-key: $INTERNAL_SERVICE_KEY" \
+  -d '{
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "email": "test@example.com",
+    "authenticationMethod": "password",
+    "emailVerified": false
+  }'
+```
+
+```bash
+curl -i -X POST http://localhost:4009/internal/v1/notifications/auth-login \
+  -H "Content-Type: application/json" \
+  -H "x-servora-internal-key: $INTERNAL_SERVICE_KEY" \
+  -d '{
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "email": "test@example.com",
+    "authenticationMethod": "password"
+  }'
+```
+
+```bash
 curl -i http://localhost:4009/health
 curl -i http://localhost:4009/ready
 ```
@@ -253,9 +290,12 @@ npm test
 ```
 
 Vitest, no external infrastructure required. Covers: internal-auth guard (missing/wrong/correct
-key), request validation for all three endpoints, correct recipient/subject/body construction,
-URL-encoding of tokens, that raw tokens/OTPs never appear in captured logs, provider-failure
-mapping to `502 PROVIDER_ERROR`, and `/health`/`/ready`.
+key), request validation for all five notification endpoints, correct recipient/subject/body
+construction, URL-encoding of tokens, that raw tokens/OTPs never appear in captured logs,
+provider-failure mapping to `502 PROVIDER_ERROR`, `/health`/`/ready`, and for the
+`account-created`/`auth-login` endpoints specifically: that the password vs. Google email variants
+say the right thing (password never claims verification is done; Google never gets a verification
+link), and that no email contains a token, credential, or fabricated device/location detail.
 
 ## Docker usage
 

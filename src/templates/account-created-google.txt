@@ -1,0 +1,11 @@
+Welcome to Servora!
+
+Your account has been created successfully with Google.
+
+Your email address has already been verified. You're all set to start using Servora.
+
+Go to Servora: {{appUrl}}
+
+If you didn't create a Servora account, you can safely ignore this email.
+
+-- Servora

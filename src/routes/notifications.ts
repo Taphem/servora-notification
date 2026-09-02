@@ -3,6 +3,8 @@ import { AppError } from '../errors/AppError.js';
 import { ErrorCode } from '../errors/errorCodes.js';
 import { ProviderError } from '../errors/ProviderError.js';
 import { requireInternalServiceKey } from '../middleware/internalAuth.js';
+import { accountCreatedSchema } from '../schemas/accountCreated.schema.js';
+import { authLoginSchema } from '../schemas/authLogin.schema.js';
 import { emailVerificationSchema } from '../schemas/emailVerification.schema.js';
 import { passwordResetSchema } from '../schemas/passwordReset.schema.js';
 import { phoneOtpSchema } from '../schemas/phoneOtp.schema.js';
@@ -79,6 +81,50 @@ export default async function notificationRoutes(app: FastifyInstance, options: 
           otp: parsed.data.otp,
           expiresInSeconds: parsed.data.expiresInSeconds,
         },
+        request.log,
+      );
+    } catch (error) {
+      throw toProviderAppError(error);
+    }
+
+    reply.status(202).send({ accepted: true });
+  });
+
+  app.post(`${BASE_PATH}/account-created`, async (request, reply) => {
+    const parsed = accountCreatedSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new AppError({
+        statusCode: 400,
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'The request could not be validated.',
+      });
+    }
+
+    try {
+      await options.notificationService.sendAccountCreated(
+        { email: parsed.data.email, authenticationMethod: parsed.data.authenticationMethod },
+        request.log,
+      );
+    } catch (error) {
+      throw toProviderAppError(error);
+    }
+
+    reply.status(202).send({ accepted: true });
+  });
+
+  app.post(`${BASE_PATH}/auth-login`, async (request, reply) => {
+    const parsed = authLoginSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new AppError({
+        statusCode: 400,
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'The request could not be validated.',
+      });
+    }
+
+    try {
+      await options.notificationService.sendAuthLogin(
+        { email: parsed.data.email, authenticationMethod: parsed.data.authenticationMethod },
         request.log,
       );
     } catch (error) {

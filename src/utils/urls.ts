@@ -17,3 +17,8 @@ export function buildPasswordResetUrl(appPublicUrl: string, resetToken: string):
   url.searchParams.set('token', resetToken);
   return url.toString();
 }
+
+/** The frontend home page — used as the generic "Go to Servora" CTA target. */
+export function buildAppUrl(appPublicUrl: string): string {
+  return new URL('/', appPublicUrl).toString();
+}

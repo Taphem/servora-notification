@@ -41,3 +41,28 @@ export function renderPasswordReset(variables: { resetUrl: string }): { html: st
 export function renderPhoneOtpMessage(variables: { otp: string; expiresInWords: string }): string {
   return `Your Servora verification code is ${variables.otp}. It expires in ${variables.expiresInWords}.`;
 }
+
+function renderPair(baseName: string, variables: Record<string, string>): { html: string; text: string } {
+  const html = readFileSync(join(TEMPLATES_DIR, `${baseName}.html`), 'utf-8');
+  const text = readFileSync(join(TEMPLATES_DIR, `${baseName}.txt`), 'utf-8');
+  return {
+    html: interpolate(html, variables, true),
+    text: interpolate(text, variables, false),
+  };
+}
+
+export function renderAccountCreatedPassword(variables: { appUrl: string }): { html: string; text: string } {
+  return renderPair('account-created-password', variables);
+}
+
+export function renderAccountCreatedGoogle(variables: { appUrl: string }): { html: string; text: string } {
+  return renderPair('account-created-google', variables);
+}
+
+export function renderAuthLoginPassword(): { html: string; text: string } {
+  return renderPair('auth-login-password', {});
+}
+
+export function renderAuthLoginGoogle(): { html: string; text: string } {
+  return renderPair('auth-login-google', {});
+}
